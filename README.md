@@ -1,0 +1,204 @@
+# Docs Navigator MCP
+
+A powerful documentation assistant that combines **Model Context Protocol (MCP)** with **Claude AI** to provide intelligent Q&A over your documentation files. Built with FastMCP and Gradio for an easy-to-use web interface.
+
+## ✨ Features
+
+- 🔍 **Smart Document Search**: Full-text search across your documentation files
+- 🤖 **AI-Powered Responses**: Uses Claude AI to provide intelligent answers based on your docs
+- 📁 **Multi-Format Support**: Works with `.md`, `.txt`, and `.rst` files
+- 🌐 **Web Interface**: Clean Gradio-based chat interface
+- ⚡ **MCP Integration**: Leverages Model Context Protocol for seamless tool integration
+- 🔧 **Easy Setup**: Simple configuration and deployment
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Gradio UI     │───▶│   Client Agent   │───▶│   Claude AI     │
+│  (Chat Interface)│    │  (MCP Client)    │    │   (Anthropic)   │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                       ┌──────────────────┐
+                       │   MCP Server     │
+                       │  (FastMCP)       │
+                       └──────────────────┘
+                                │
+                                ▼
+                       ┌──────────────────┐
+                       │   docs/ folder   │
+                       │  (.md, .txt,     │
+                       │   .rst files)    │
+                       └──────────────────┘
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.10 or higher
+- An Anthropic API key
+- UV package manager (recommended) or pip
+
+### 1. Clone and Setup
+
+```bash
+git clone <your-repo-url>
+cd docs-navigator
+```
+
+### 2. Install Dependencies
+
+Using UV (recommended):
+```bash
+uv sync
+```
+
+Or using pip:
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configure Environment
+
+Create a `.env` file:
+```bash
+echo "ANTHROPIC_API_KEY=your_api_key_here" > .env
+```
+
+### 4. Add Your Documentation
+
+Place your documentation files in the `docs/` directory:
+```
+docs/
+├── overview.md
+├── setup.md
+├── troubleshooting.md
+└── your-other-docs.txt
+```
+
+### 5. Launch the Application
+
+```bash
+# Using UV
+uv run app_gradio.py
+
+# Or directly with Python
+python app_gradio.py
+```
+
+The app will be available at `http://127.0.0.1:7860`
+
+## 📚 Usage Examples
+
+Once the app is running, you can ask questions like:
+
+- "How do I set up the authentication?"
+- "What are the troubleshooting steps for connection issues?"
+- "Where can I find information about API endpoints?"
+- "Summarize the main features mentioned in the docs"
+
+The AI will search through your documentation and provide contextual answers with references to the source files.
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+docs-navigator/
+├── app_gradio.py          # Gradio web interface
+├── client_agent.py        # MCP client and Claude integration
+├── server_docs.py         # MCP server with doc tools
+├── docs/                  # Your documentation files
+├── tests/                 # Test scripts
+│   ├── test_mcp.py       # Test MCP server functionality
+│   ├── test_anthropic.py # Test Claude API connection
+│   └── test_complete.py  # End-to-end functionality test
+├── .env                   # Environment variables
+├── pyproject.toml         # Project configuration
+└── requirements.txt       # Python dependencies
+```
+
+### Available MCP Tools
+
+The server exposes these tools to the AI:
+
+1. **`list_docs()`**: Get a list of all available documentation files
+2. **`search_docs(query, max_results)`**: Search for specific content across all docs
+
+### Testing
+
+Run the test suite:
+
+```bash
+# Test MCP server functionality
+python test_mcp.py
+
+# Test Claude API connection
+python test_anthropic.py
+
+# Test complete end-to-end functionality
+python test_complete.py
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `ANTHROPIC_API_KEY` | Your Anthropic Claude API key | Yes |
+
+### Supported File Formats
+
+- **Markdown**: `.md`
+- **Text**: `.txt`
+- **reStructuredText**: `.rst`
+
+### Model Configuration
+
+The app currently uses `claude-3-haiku-20240307`. To change the model, edit the model name in `client_agent.py`:
+
+```python
+model="claude-3-haiku-20240307"  # Change to your preferred model
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **"Model not found" error**: Your API key may not have access to the specified Claude model. The app will automatically test available models.
+
+2. **MCP connection issues**: Ensure the `server_docs.py` script is executable and in the correct location.
+
+3. **No documents found**: Make sure your documentation files are in the `docs/` folder with supported extensions.
+
+4. **Gradio interface not loading**: Check that port 7860 is available or modify the port in `app_gradio.py`.
+
+### Debug Mode
+
+Enable verbose logging by modifying the logging level in the respective files.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [FastMCP](https://github.com/modelcontextprotocol/mcp) for Model Context Protocol integration
+- Powered by [Anthropic Claude](https://www.anthropic.com/) for AI responses
+- UI created with [Gradio](https://gradio.app/)
+- Package management with [UV](https://docs.astral.sh/uv/)
+
+---
+
+For more detailed instructions, see the [Getting Started Guide](GETTING_STARTED.md).

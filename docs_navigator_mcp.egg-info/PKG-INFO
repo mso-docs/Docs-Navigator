@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: docs-navigator-mcp
+Version: 0.1.0
+Summary: Docs Navigator MCP — FastMCP server + agent + Gradio UI
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: mcp[cli]>=0.1.0
+Requires-Dist: anthropic>=0.36.0
+Requires-Dist: python-dotenv>=1.0.1
+Requires-Dist: gradio>=5.0.0
