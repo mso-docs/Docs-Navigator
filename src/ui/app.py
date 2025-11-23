@@ -110,7 +110,10 @@ demo = gr.ChatInterface(
         "🔧 How do I troubleshoot connection issues?",
         "📖 Tell me about the setup process",
         "💡 What does the overview documentation explain?",
-        "📄 What information is in the PDF documents?"
+        "📄 What information is in the PDF documents?",
+        "🔤 What is the OCR status and what file types are supported?",
+        "🖼️ Extract text from any image files in the documentation",
+        "📊 Show me OCR processing results and confidence scores"
     ]
 )
 

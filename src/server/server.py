@@ -17,6 +17,18 @@ except ImportError:
     PDF_SUPPORT = False
     print("Warning: PyPDF2 not installed. PDF support disabled.")
 
+# Import OCR processing capabilities
+try:
+    from ocr_processor import extract_text_with_ocr, is_ocr_available, get_ocr_status
+    OCR_SUPPORT = is_ocr_available()
+    if OCR_SUPPORT:
+        print("OCR support enabled for image-based PDFs and images")
+    else:
+        print("OCR libraries available but Tesseract not found")
+except ImportError:
+    OCR_SUPPORT = False
+    print("Warning: OCR dependencies not installed. Image-based PDF processing disabled.")
+
 # Name your server – this is what clients see
 mcp = FastMCP("DocsNavigator")
 
@@ -28,6 +40,12 @@ def _iter_docs() -> list[Path]:
     exts = {".md", ".txt", ".rst"}
     if PDF_SUPPORT:
         exts.add(".pdf")
+    
+    # Add image formats if OCR is available
+    if OCR_SUPPORT:
+        image_exts = {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".gif"}
+        exts.update(image_exts)
+    
     return [
         p for p in DOCS_ROOT.rglob("*")
         if p.is_file() and p.suffix.lower() in exts
@@ -35,17 +53,71 @@ def _iter_docs() -> list[Path]:
 
 
 def _read_file(path: Path) -> str:
-    if path.suffix.lower() == ".pdf":
+    suffix = path.suffix.lower()
+    
+    if suffix == ".pdf":
         return _read_pdf_file(path)
+    elif suffix in {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".gif"}:
+        return _read_image_file(path)
     else:
         return path.read_text(encoding="utf-8", errors="ignore")
 
 
+def _read_image_file(path: Path) -> str:
+    """Extract text from image file using OCR."""
+    if not OCR_SUPPORT:
+        return f"OCR support not available for image {path.name}. Install OCR dependencies."
+    
+    try:
+        result = extract_text_with_ocr(path)
+        
+        if result["success"]:
+            confidence = result.get("confidence", 0)
+            method = result.get("method", "OCR")
+            
+            extracted_text = f"--- Image: {path.name} (OCR, Confidence: {confidence:.1%}, Method: {method}) ---\n"
+            extracted_text += result["text"]
+            
+            return extracted_text
+        else:
+            error_msg = result.get("error", "Unknown error")
+            return f"--- Image: {path.name} (OCR Failed: {error_msg}) ---"
+            
+    except Exception as e:
+        return f"Error processing image {path.name}: {str(e)}"
+
+
 def _read_pdf_file(path: Path) -> str:
-    """Extract text from PDF file."""
+    """Extract text from PDF file with OCR fallback."""
     if not PDF_SUPPORT:
         return f"PDF support not available. Install PyPDF2 to read {path.name}"
     
+    # If OCR is available, use hybrid approach
+    if OCR_SUPPORT:
+        try:
+            result = extract_text_with_ocr(path)
+            
+            if result["success"]:
+                confidence = result.get("confidence", 0)
+                method = result.get("method", "unknown")
+                pages_info = ""
+                
+                if "pages_processed" in result:
+                    pages_successful = result.get("pages_successful", 0)
+                    pages_total = result["pages_processed"]
+                    pages_info = f", Pages: {pages_successful}/{pages_total}"
+                
+                header = f"--- PDF: {path.name} (Method: {method}, Confidence: {confidence:.1%}{pages_info}) ---\n"
+                return header + result["text"]
+            else:
+                error_msg = result.get("error", "Unknown error")
+                return f"--- PDF: {path.name} (Processing Failed: {error_msg}) ---"
+                
+        except Exception as e:
+            # Fallback to basic text extraction on OCR error
+            pass
+    
+    # Basic text extraction (original method)
     try:
         text = ""
         with open(path, 'rb') as file:
@@ -58,9 +130,15 @@ def _read_pdf_file(path: Path) -> str:
                         text += f"\n--- Page {page_num + 1} ---\n{page_text}\n"
                 except Exception as e:
                     text += f"\n--- Page {page_num + 1} (Error reading: {str(e)}) ---\n"
-                    
-        return text if text.strip() else f"No text could be extracted from {path.name}"
         
+        if text.strip():
+            return f"--- PDF: {path.name} (Method: text_extraction) ---\n{text}"
+        else:
+            if OCR_SUPPORT:
+                return f"--- PDF: {path.name} (No text extracted, OCR also failed) ---"
+            else:
+                return f"--- PDF: {path.name} (No text extracted, OCR not available) ---"
+                    
     except Exception as e:
         return f"Error reading PDF {path.name}: {str(e)}"
 
@@ -1234,6 +1312,65 @@ def generate_documentation_index() -> Dict[str, Any]:
             "avg_cross_references": sum(len(refs) for refs in index["cross_references"].values()) / len(index["cross_references"]) if index["cross_references"] else 0
         }
     }
+
+
+@mcp.tool()
+def get_ocr_status() -> Dict[str, Any]:
+    """
+    Get the current status of OCR (Optical Character Recognition) capabilities.
+    
+    Returns:
+        Dictionary with OCR availability, supported formats, and setup information
+    """
+    try:
+        if OCR_SUPPORT:
+            from ocr_processor import get_ocr_status
+            status = get_ocr_status()
+            
+            # Add document statistics
+            all_docs = list(_iter_docs())
+            image_docs = [doc for doc in all_docs if doc.suffix.lower() in {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".gif"}]
+            pdf_docs = [doc for doc in all_docs if doc.suffix.lower() == ".pdf"]
+            
+            status["document_stats"] = {
+                "total_documents": len(all_docs),
+                "pdf_documents": len(pdf_docs),
+                "image_documents": len(image_docs),
+                "text_documents": len(all_docs) - len(pdf_docs) - len(image_docs)
+            }
+            
+            return status
+        else:
+            # OCR not available
+            base_status = {
+                "available": False,
+                "error": "OCR libraries not available",
+                "supported_formats": [],
+                "installation_instructions": "Install OCR dependencies: pip install pytesseract pdf2image Pillow"
+            }
+            
+            # Still provide document statistics
+            all_docs = list(_iter_docs())
+            pdf_docs = [doc for doc in all_docs if doc.suffix.lower() == ".pdf"]
+            
+            base_status["document_stats"] = {
+                "total_documents": len(all_docs),
+                "pdf_documents": len(pdf_docs),
+                "image_documents": 0,  # Can't process without OCR
+                "text_documents": len(all_docs) - len(pdf_docs)
+            }
+            
+            if PDF_SUPPORT:
+                base_status["note"] = "Basic PDF text extraction available, but OCR needed for image-based PDFs"
+            
+            return base_status
+            
+    except Exception as e:
+        return {
+            "available": False,
+            "error": f"Error checking OCR status: {str(e)}",
+            "supported_formats": []
+        }
 
 
 if __name__ == "__main__":

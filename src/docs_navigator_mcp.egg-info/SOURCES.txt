@@ -15,8 +15,13 @@ src/ui/enhanced.py
 src/ui/showcase.py
 tests/test_anthropic.py
 tests/test_complete.py
+tests/test_end_to_end_pdf.py
 tests/test_fixed_summarization.py
+tests/test_image_processing.py
 tests/test_intelligent_tools.py
 tests/test_mcp.py
+tests/test_mcp_pdf.py
+tests/test_ocr.py
+tests/test_pdf_discovery.py
 tests/test_pdf_support.py
 tests/test_quick.py
