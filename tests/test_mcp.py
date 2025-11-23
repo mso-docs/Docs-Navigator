@@ -4,7 +4,10 @@ Test script to verify MCP functionality works correctly.
 """
 
 import asyncio
-from client_agent import DocsNavigatorClient
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+from agent.client import DocsNavigatorClient
 
 async def test_mcp_connection():
     """Test that we can connect to the MCP server and use its tools."""
@@ -12,7 +15,7 @@ async def test_mcp_connection():
     
     try:
         print("Connecting to MCP server...")
-        await client.connect("server_docs.py")
+        await client.connect("src/server/server.py")
         
         print("Listing available docs...")
         tools_response = await client.session.list_tools()
