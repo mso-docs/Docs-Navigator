@@ -6,10 +6,11 @@ A powerful documentation assistant that combines **Model Context Protocol (MCP)*
 
 - 🔍 **Smart Document Search**: Full-text search across your documentation files
 - 🤖 **AI-Powered Responses**: Uses Claude AI to provide intelligent answers based on your docs
-- 📁 **Multi-Format Support**: Works with `.md`, `.txt`, and `.rst` files
+- 📁 **Multi-Format Support**: Works with `.md`, `.txt`, `.rst`, and `.pdf` files
 - 🌐 **Web Interface**: Clean Gradio-based chat interface
 - ⚡ **MCP Integration**: Leverages Model Context Protocol for seamless tool integration
 - 🔧 **Easy Setup**: Simple configuration and deployment
+- 📄 **PDF Support**: Extract and analyze text from PDF documents
 
 ## 🏗️ Architecture
 
@@ -155,6 +156,7 @@ python test_complete.py
 - **Markdown**: `.md`
 - **Text**: `.txt`
 - **reStructuredText**: `.rst`
+- **PDF Documents**: `.pdf` (text extraction)
 
 ### Model Configuration
 

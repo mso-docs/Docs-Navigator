@@ -93,6 +93,7 @@ demo = gr.ChatInterface(
     chatbot=gr.Chatbot(
         height=500,
         show_label=False,
+        type="messages",
         avatar_images=(
             "https://api.dicebear.com/7.x/thumbs/svg?seed=user&backgroundColor=3b82f6",
             "https://api.dicebear.com/7.x/bottts/svg?seed=docs&backgroundColor=1e40af"
@@ -108,7 +109,8 @@ demo = gr.ChatInterface(
         "⚙️ What configuration options are available?", 
         "🔧 How do I troubleshoot connection issues?",
         "📖 Tell me about the setup process",
-        "💡 What does the overview documentation explain?"
+        "💡 What does the overview documentation explain?",
+        "📄 What information is in the PDF documents?"
     ]
 )
 

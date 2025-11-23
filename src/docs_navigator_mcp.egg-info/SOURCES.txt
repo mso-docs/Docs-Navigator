@@ -18,4 +18,5 @@ tests/test_complete.py
 tests/test_fixed_summarization.py
 tests/test_intelligent_tools.py
 tests/test_mcp.py
+tests/test_pdf_support.py
 tests/test_quick.py
