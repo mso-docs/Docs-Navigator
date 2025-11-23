@@ -19,9 +19,10 @@ class DocsNavigatorClient:
         self.anthropic = Anthropic()
         self._tools_cache = None
 
-    async def connect(self, server_script_path: str = "src/server/server.py"):
+    async def connect(self, server_script_path: str = "lightweight_server.py"):
         """
         Start the docs MCP server (via stdio) and initialize a session.
+        Uses lightweight server by default for faster startup.
         """
         import os
         import sys
@@ -50,16 +51,24 @@ class DocsNavigatorClient:
                 args=[server_script_path],
                 env=None,
             )
-        stdio_transport = await self.exit_stack.enter_async_context(
-            stdio_client(params)
+        
+        # Add timeout to connection establishment with longer timeout for OCR loading
+        stdio_transport = await asyncio.wait_for(
+            self.exit_stack.enter_async_context(stdio_client(params)),
+            timeout=30.0  # Longer timeout for OCR model loading
         )
         self.stdio, self.write = stdio_transport
-        self.session = await self.exit_stack.enter_async_context(
-            ClientSession(self.stdio, self.write)
+        
+        self.session = await asyncio.wait_for(
+            self.exit_stack.enter_async_context(ClientSession(self.stdio, self.write)),
+            timeout=10.0
         )
-        await self.session.initialize()
+        
+        await asyncio.wait_for(self.session.initialize(), timeout=10.0)
 
-        tools_response = await self.session.list_tools()
+        tools_response = await asyncio.wait_for(
+            self.session.list_tools(), timeout=10.0
+        )
         self._tools_cache = [
             {
                 "name": t.name,
@@ -81,24 +90,32 @@ class DocsNavigatorClient:
             raise RuntimeError("MCP session not initialized. Call connect() first.")
 
         if self._tools_cache is None:
-            tools_response = await self.session.list_tools()
-            self._tools_cache = [
-                {
-                    "name": t.name,
-                    "description": t.description,
-                    "input_schema": t.inputSchema,
-                }
-                for t in tools_response.tools
-            ]
+            try:
+                tools_response = await asyncio.wait_for(
+                    self.session.list_tools(), timeout=10.0
+                )
+                self._tools_cache = [
+                    {
+                        "name": t.name,
+                        "description": t.description,
+                        "input_schema": t.inputSchema,
+                    }
+                    for t in tools_response.tools
+                ]
+            except asyncio.TimeoutError:
+                raise RuntimeError("Failed to get tools list from server - server may be unresponsive")
 
         messages = [
             {
                 "role": "user",
                 "content": (
-                    "You are a documentation assistant. "
-                    "Use the available MCP tools to search and read docs in order "
-                    "to answer the question. You can use multiple tools and think through "
-                    "your response step by step. Always reference the files you used.\n\n"
+                    "You are a documentation assistant with OCR (Optical Character Recognition) capabilities. "
+                    "Use the available MCP tools to search and read docs in order to answer questions. "
+                    "You can process both text documents AND image files (PNG, JPG, etc.) using OCR to extract text content. "
+                    "When users ask about images or visual content, use list_docs to find image files, "
+                    "then use read_doc to extract text from images via OCR. "
+                    "You can use multiple tools and think through your response step by step. "
+                    "Always reference the files you used and mention OCR confidence when available.\n\n"
                     f"User question: {user_query}"
                 ),
             }
@@ -111,13 +128,22 @@ class DocsNavigatorClient:
         while iteration < max_iterations:
             iteration += 1
             
-            # Call the LLM
-            response = self.anthropic.messages.create(
-                model="claude-3-haiku-20240307",
-                max_tokens=2500,  # Increased token limit for longer responses
-                messages=messages,
-                tools=tools,
-            )
+            try:
+                # Call the LLM with timeout
+                response = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        self.anthropic.messages.create,
+                        model="claude-3-haiku-20240307",
+                        max_tokens=2500,
+                        messages=messages,
+                        tools=tools,
+                    ),
+                    timeout=20.0
+                )
+            except asyncio.TimeoutError:
+                return "⏰ The AI model took too long to respond. Please try a simpler question."
+            except Exception as e:
+                return f"❌ Error calling AI model: {str(e)}"
 
             # Add assistant's response to conversation
             messages.append({
@@ -140,13 +166,23 @@ class DocsNavigatorClient:
                     tool_name = tool_call.name
                     tool_args = tool_call.input
                     
-                    # Call the MCP tool
-                    result = await self.session.call_tool(tool_name, tool_args)
+                    # Call the MCP tool with timeout
+                    result = await asyncio.wait_for(
+                        self.session.call_tool(tool_name, tool_args),
+                        timeout=15.0
+                    )
                     
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": tool_call.id,
                         "content": result.content,
+                    })
+                except asyncio.TimeoutError:
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": tool_call.id,
+                        "content": f"Tool {tool_call.name} timed out - server may be processing large files",
+                        "is_error": True,
                     })
                 except Exception as e:
                     # Handle tool errors gracefully
@@ -193,23 +229,34 @@ def answer_sync(user_query: str) -> str:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            return loop.run_until_complete(_answer_async(user_query))
+            # Set a timeout for the entire operation - longer for initial connection
+            return loop.run_until_complete(
+                asyncio.wait_for(_answer_async(user_query), timeout=60.0)  # Longer timeout
+            )
+        except asyncio.TimeoutError:
+            return "⏰ Request timed out after 60 seconds. The server may be loading OCR models. Please wait a moment and try again."
+        except Exception as e:
+            return f"❌ Error: {str(e)}. Please try again or check the server configuration."
         finally:
             loop.close()
     
     # Run in a separate thread to avoid conflicts with Gradio's event loop
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(run_in_new_loop)
-        return future.result()
+        try:
+            return future.result(timeout=65.0)  # Slightly longer than the inner timeout
+        except concurrent.futures.TimeoutError:
+            return "⏰ Request timed out. The server may be loading OCR models. Please try restarting the application."
 
 
 async def _answer_async(user_query: str) -> str:
     """
     Create a fresh client for each request to avoid event loop issues.
+    Uses lightweight server for faster startup.
     """
     client = DocsNavigatorClient()
     try:
-        await client.connect("src/server/server.py")
+        await client.connect("lightweight_server.py")
         return await client.answer(user_query)
     finally:
         await client.close()

@@ -6,11 +6,12 @@ A powerful documentation assistant that combines **Model Context Protocol (MCP)*
 
 - 🔍 **Smart Document Search**: Full-text search across your documentation files
 - 🤖 **AI-Powered Responses**: Uses Claude AI to provide intelligent answers based on your docs
-- 📁 **Multi-Format Support**: Works with `.md`, `.txt`, `.rst`, and `.pdf` files
+- 📁 **Multi-Format Support**: Works with `.md`, `.txt`, `.rst`, `.pdf`, and image files
+- 🔤 **OCR Capabilities**: Extract text from image-based PDFs and standalone images using Tesseract OCR
+- 📄 **Advanced PDF Support**: Hybrid PDF processing with automatic fallback to OCR for scanned documents
 - 🌐 **Web Interface**: Clean Gradio-based chat interface
 - ⚡ **MCP Integration**: Leverages Model Context Protocol for seamless tool integration
 - 🔧 **Easy Setup**: Simple configuration and deployment
-- 📄 **PDF Support**: Extract and analyze text from PDF documents
 
 ## 🏗️ Architecture
 
@@ -156,7 +157,35 @@ python test_complete.py
 - **Markdown**: `.md`
 - **Text**: `.txt`
 - **reStructuredText**: `.rst`
-- **PDF Documents**: `.pdf` (text extraction)
+- **PDF Documents**: `.pdf` (text extraction + OCR for image-based content)
+- **Image Files**: `.png`, `.jpg`, `.jpeg`, `.tiff`, `.tif`, `.bmp`, `.gif` (OCR text extraction)
+
+### OCR Requirements
+
+For image-based PDF and image file processing, install Tesseract OCR:
+
+**Windows:**
+```bash
+# Download and install from: https://github.com/UB-Mannheim/tesseract/wiki
+# Or install via chocolatey:
+choco install tesseract
+```
+
+**macOS:**
+```bash
+brew install tesseract
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install tesseract-ocr
+sudo apt-get install poppler-utils  # For PDF image conversion
+```
+
+**Additional Language Packs (optional):**
+- Windows: Select during Tesseract installation
+- macOS: `brew install tesseract-lang`
+- Ubuntu: `sudo apt-get install tesseract-ocr-[language_code]`
 
 ### Model Configuration
 
