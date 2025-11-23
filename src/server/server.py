@@ -9,6 +9,14 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from document_intelligence import DocumentIntelligence
 
+# Import PDF processing library
+try:
+    import PyPDF2
+    PDF_SUPPORT = True
+except ImportError:
+    PDF_SUPPORT = False
+    print("Warning: PyPDF2 not installed. PDF support disabled.")
+
 # Name your server – this is what clients see
 mcp = FastMCP("DocsNavigator")
 
@@ -18,6 +26,8 @@ doc_intel = DocumentIntelligence(DOCS_ROOT)
 
 def _iter_docs() -> list[Path]:
     exts = {".md", ".txt", ".rst"}
+    if PDF_SUPPORT:
+        exts.add(".pdf")
     return [
         p for p in DOCS_ROOT.rglob("*")
         if p.is_file() and p.suffix.lower() in exts
@@ -25,7 +35,34 @@ def _iter_docs() -> list[Path]:
 
 
 def _read_file(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="ignore")
+    if path.suffix.lower() == ".pdf":
+        return _read_pdf_file(path)
+    else:
+        return path.read_text(encoding="utf-8", errors="ignore")
+
+
+def _read_pdf_file(path: Path) -> str:
+    """Extract text from PDF file."""
+    if not PDF_SUPPORT:
+        return f"PDF support not available. Install PyPDF2 to read {path.name}"
+    
+    try:
+        text = ""
+        with open(path, 'rb') as file:
+            pdf_reader = PyPDF2.PdfReader(file)
+            
+            for page_num, page in enumerate(pdf_reader.pages):
+                try:
+                    page_text = page.extract_text()
+                    if page_text:
+                        text += f"\n--- Page {page_num + 1} ---\n{page_text}\n"
+                except Exception as e:
+                    text += f"\n--- Page {page_num + 1} (Error reading: {str(e)}) ---\n"
+                    
+        return text if text.strip() else f"No text could be extracted from {path.name}"
+        
+    except Exception as e:
+        return f"Error reading PDF {path.name}: {str(e)}"
 
 
 def _extract_hierarchical_sections(content: str) -> List[Dict[str, str]]:
@@ -424,7 +461,7 @@ def search_docs(query: str, max_results: int = 10) -> List[Dict[str, str]]:
             results.append({
                 "path": str(path.relative_to(DOCS_ROOT)),
                 "snippet": best_match["snippet"],
-                "score": best_match["score"],
+                "score": str(best_match["score"]),
                 "match_type": best_match["match_type"]
             })
 
@@ -474,7 +511,7 @@ def extract_section(relative_path: str, section_title: str, include_subsections:
         return {
             "error": f"Section '{section_title}' not found",
             "available_sections": available_sections[:10],  # Limit to first 10 for readability
-            "total_sections": len(available_sections)
+            "total_sections": str(len(available_sections))
         }
     
     if len(matching_sections) == 1:
@@ -483,7 +520,7 @@ def extract_section(relative_path: str, section_title: str, include_subsections:
             "document": relative_path,
             "section_title": section['title'].lstrip('#').strip(),
             "content": section['content'].strip(),
-            "word_count": len(section['content'].split()),
+            "word_count": str(len(section['content'].split())),
             "match_type": "single",
             "extraction_mode": "hierarchical" if include_subsections else "flat"
         }
@@ -502,7 +539,7 @@ def extract_section(relative_path: str, section_title: str, include_subsections:
             section_info = {
                 "section_title": section['title'].lstrip('#').strip(),
                 "content": section['content'].strip(),
-                "word_count": len(section['content'].split())
+                "word_count": str(len(section['content'].split()))
             }
             if 'level' in section:
                 section_info["header_level"] = section['level']
@@ -514,7 +551,7 @@ def extract_section(relative_path: str, section_title: str, include_subsections:
             "document": relative_path,
             "match_type": "multiple",
             "matching_sections": results,
-            "total_matches": len(results),
+            "total_matches": str(len(results)),
             "extraction_mode": "hierarchical" if include_subsections else "flat"
         }
 
@@ -554,8 +591,8 @@ def summarize_document(relative_path: str, summary_type: str = "overview") -> Di
     
     return {
         "document": relative_path,
-        "word_count": word_count,
-        "sections": len(sections),
+        "word_count": str(word_count),
+        "sections": str(len(sections)),
         "summary_type": summary_type,
         "summary": summary
     }
@@ -595,7 +632,7 @@ def analyze_document_structure(relative_path: str) -> Dict[str, Any]:
             "lines": len(lines),
             "words": len(words),
             "characters": len(content),
-            "sections": len(sections),
+            "sections": str(len(sections)),
             "code_blocks": code_blocks,
             "links": len(links)
         },
@@ -622,7 +659,7 @@ def generate_doc_overview() -> Dict[str, Any]:
     """
     docs = _iter_docs()
     overview = {
-        "total_documents": len(docs),
+        "total_documents": str(len(docs)),
         "documents_by_type": {},
         "total_content": {"words": 0, "lines": 0, "characters": 0},
         "structure_analysis": {"sections": 0, "code_blocks": 0},
@@ -860,7 +897,7 @@ def extract_definitions(relative_path: str) -> Dict[str, Any]:
         "definitions": definitions,
         "glossary_terms": glossary_terms,
         "technical_terms": tech_terms_unique,
-        "total_definitions": len(definitions) + len(glossary_terms),
+        "total_definitions": str(len(definitions) + len(glossary_terms)),
         "definition_density": (len(definitions) + len(glossary_terms)) / len(content.split()) if content.split() else 0
     }
 
@@ -907,7 +944,7 @@ def generate_table_of_contents(relative_path: str = None) -> Dict[str, Any]:
         return {
             "type": "complete_documentation_toc",
             "documents": all_toc,
-            "total_documents": len(all_toc)
+            "total_documents": str(len(all_toc))
         }
 
 
@@ -988,7 +1025,7 @@ def extract_qa_pairs(relative_path: str = None) -> Dict[str, Any]:
         return {
             "document": relative_path,
             "qa_pairs": qa_pairs,
-            "total_pairs": len(qa_pairs)
+            "total_pairs": str(len(qa_pairs))
         }
     else:
         # Extract from all documents
@@ -1006,7 +1043,7 @@ def extract_qa_pairs(relative_path: str = None) -> Dict[str, Any]:
         return {
             "type": "complete_documentation_qa",
             "qa_by_document": all_qa_pairs,
-            "total_pairs": total_pairs
+            "total_pairs": str(total_pairs)
         }
 
 

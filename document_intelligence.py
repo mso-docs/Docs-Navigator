@@ -16,6 +16,9 @@ class DocumentIntelligence:
         
     def generate_smart_summary(self, content: str, summary_type: str = "medium") -> str:
         """Generate an intelligent summary based on content analysis."""
+        # Handle PDF page markers
+        content = self._clean_pdf_content(content)
+        
         sentences = self._split_into_sentences(content)
         
         if not sentences:
@@ -82,6 +85,9 @@ class DocumentIntelligence:
     
     def extract_key_concepts(self, content: str, min_frequency: int = 2) -> List[Dict[str, Any]]:
         """Extract key concepts and terms from content."""
+        # Clean PDF content for better concept extraction
+        content = self._clean_pdf_content(content)
+        
         concepts = []
         
         # Extract technical terms (words in backticks)
@@ -126,6 +132,9 @@ class DocumentIntelligence:
     
     def analyze_readability(self, content: str) -> Dict[str, Any]:
         """Analyze content readability using various metrics."""
+        # Clean PDF content for better analysis
+        content = self._clean_pdf_content(content)
+        
         sentences = self._split_into_sentences(content)
         words = self._extract_words(content)
         
@@ -369,3 +378,26 @@ class DocumentIntelligence:
             snippet = snippet + "..."
         
         return snippet.replace('\n', ' ')
+    
+    def _clean_pdf_content(self, content: str) -> str:
+        """Clean PDF content by removing page markers and fixing formatting."""
+        import re
+        
+        # Remove page markers like "--- Page 1 ---"
+        content = re.sub(r'\n--- Page \d+ ---\n', '\n\n', content)
+        content = re.sub(r'\n--- Page \d+ \(Error reading:.*?\) ---\n', '\n\n', content)
+        
+        # Fix common PDF extraction issues
+        # Remove excessive whitespace
+        content = re.sub(r'\n\s*\n\s*\n+', '\n\n', content)
+        
+        # Fix broken words (common in PDF extraction)
+        content = re.sub(r'(\w)-\s*\n\s*(\w)', r'\1\2', content)
+        
+        # Fix spacing issues
+        content = re.sub(r'([a-z])([A-Z])', r'\1 \2', content)
+        
+        # Remove extra spaces
+        content = re.sub(r' +', ' ', content)
+        
+        return content.strip()
