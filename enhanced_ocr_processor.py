@@ -14,9 +14,15 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Union
 import logging
 
+# Check if heavy models should be disabled
+DISABLE_HEAVY_MODELS = os.getenv('DISABLE_TROCR', '').lower() in ('1', 'true', 'yes')
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+if DISABLE_HEAVY_MODELS:
+    logger.info("Heavy OCR models disabled via environment variable")
 
 
 class OCRBackend:
@@ -191,6 +197,11 @@ class TransformersOCRBackend(OCRBackend):
         self._initialize()
     
     def _initialize(self):
+        # Skip TrOCR if heavy models are disabled
+        if DISABLE_HEAVY_MODELS:
+            logger.info("TrOCR backend skipped (heavy models disabled)")
+            return
+            
         try:
             from transformers import TrOCRProcessor, VisionEncoderDecoderModel
             from PIL import Image
@@ -263,8 +274,11 @@ class EnhancedOCRProcessor:
         self.backends = {
             "tesseract": TesseractBackend(),
             "easyocr": EasyOCRBackend(),
-            "trocr": TransformersOCRBackend()
         }
+        
+        # Only include TrOCR if heavy models are not disabled
+        if not DISABLE_HEAVY_MODELS:
+            self.backends["trocr"] = TransformersOCRBackend()
         
         # Find available backends
         self.available_backends = [name for name, backend in self.backends.items() if backend.is_available()]

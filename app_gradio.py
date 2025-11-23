@@ -23,16 +23,29 @@ def main():
     """Main entry point for the application."""
     print("🚀 Starting Docs Navigator MCP...")
     print("📚 AI-Powered Documentation Assistant")
-    print("🌐 The app will be available at: http://127.0.0.1:7863")
     print("💡 Ask questions about your documentation!")
     print("-" * 50)
     
-    demo.launch(
-        server_name="127.0.0.1",
-        server_port=7863,
-        show_error=True,
-        share=False  # Set to True if you want a public link
-    )
+    # Try to launch with auto port selection if 7863 is busy
+    try:
+        print("🌐 Attempting to start on port 7863...")
+        demo.launch(
+            server_name="127.0.0.1",
+            server_port=7863,
+            show_error=True,
+            share=False  # Set to True if you want a public link
+        )
+    except OSError as e:
+        if "Cannot find empty port" in str(e):
+            print("⚠️  Port 7863 is busy, finding an available port...")
+            demo.launch(
+                server_name="127.0.0.1",
+                server_port=0,  # Auto-select available port
+                show_error=True,
+                share=False
+            )
+        else:
+            raise
 
 if __name__ == "__main__":
     main()

@@ -12,10 +12,15 @@ def chat_fn(message: str, history: list[dict]):
         if not message.strip():
             return "Please enter a question about the documentation."
         
+        # Add loading indicator
+        print(f"🔍 Processing: {message[:50]}...")
         reply = answer_sync(message)
+        print(f"✅ Response generated: {len(reply)} characters")
         return reply
     except Exception as e:
-        return f"⚠️ I encountered an error while processing your question: {str(e)}\n\nPlease try again or rephrase your question."
+        error_msg = f"⚠️ I encountered an error while processing your question: {str(e)}\n\nPlease try again or rephrase your question."
+        print(f"❌ Error in chat_fn: {e}")
+        return error_msg
 
 
 def main():
@@ -105,6 +110,7 @@ demo = gr.ChatInterface(
         scale=7
     ),
     examples=[
+        "👋 Hello! Are you working?",
         "🚀 How do I get started with this project?",
         "⚙️ What configuration options are available?", 
         "🔧 How do I troubleshoot connection issues?",

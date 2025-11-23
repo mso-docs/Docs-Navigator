@@ -15,27 +15,42 @@ try:
     PDF_SUPPORT = True
 except ImportError:
     PDF_SUPPORT = False
-    print("Warning: PyPDF2 not installed. PDF support disabled.")
+    print("Warning: PyPDF2 not installed. PDF support disabled.", file=sys.stderr)
 
 # Import OCR processing capabilities - Try enhanced version first
 try:
+    import sys
+    import os
+    # Suppress model loading output that interferes with JSON-RPC
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    sys.stdout = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, 'w')
+    
     from enhanced_ocr_processor import extract_text_with_ocr, is_ocr_available, get_ocr_status
+    
+    # Restore stdout/stderr
+    sys.stdout.close()
+    sys.stderr.close()
+    sys.stdout = old_stdout
+    sys.stderr = old_stderr
+    
     OCR_SUPPORT = is_ocr_available()
     if OCR_SUPPORT:
-        print("Enhanced OCR support enabled for image-based PDFs and images")
+        print("Enhanced OCR support enabled for image-based PDFs and images", file=sys.stderr)
     else:
-        print("Enhanced OCR libraries available but no backends found")
+        print("Enhanced OCR libraries available but no backends found", file=sys.stderr)
 except ImportError:
     try:
         from ocr_processor import extract_text_with_ocr, is_ocr_available, get_ocr_status
         OCR_SUPPORT = is_ocr_available()
         if OCR_SUPPORT:
-            print("OCR support enabled for image-based PDFs and images")
+            print("OCR support enabled for image-based PDFs and images", file=sys.stderr)
         else:
-            print("OCR libraries available but Tesseract not found")
+            print("OCR libraries available but Tesseract not found", file=sys.stderr)
     except ImportError:
         OCR_SUPPORT = False
-        print("Warning: OCR dependencies not installed. Image-based PDF processing disabled.")
+        print("Warning: OCR dependencies not installed. Image-based PDF processing disabled.", file=sys.stderr)
 
 # Name your server – this is what clients see
 mcp = FastMCP("DocsNavigator")
