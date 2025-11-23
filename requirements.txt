@@ -3,6 +3,13 @@ anthropic>=0.36.0
 python-dotenv>=1.0.1
 gradio>=5.0.0
 PyPDF2>=3.0.0
+# OCR Dependencies
 pytesseract>=0.3.10
 pdf2image>=1.16.3
 Pillow>=10.0.0
+# Pure Python OCR alternatives (no external dependencies)
+easyocr>=1.7.0
+transformers>=4.25.0
+torch>=1.13.0
+# Alternative: paddleocr (another pure Python option)
+# paddleocr>=2.7.0

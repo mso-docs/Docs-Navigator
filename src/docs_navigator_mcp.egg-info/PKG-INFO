@@ -12,6 +12,9 @@ Requires-Dist: PyPDF2>=3.0.0
 Requires-Dist: pytesseract>=0.3.13
 Requires-Dist: pdf2image>=1.17.0
 Requires-Dist: pillow>=11.3.0
+Requires-Dist: easyocr>=1.7.0
+Requires-Dist: transformers>=4.25.0
+Requires-Dist: torch>=1.13.0
 
 # Docs Navigator MCP
 

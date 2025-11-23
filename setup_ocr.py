@@ -39,14 +39,68 @@ def run_command(cmd, description):
 
 
 def install_python_packages():
-    """Install Python OCR packages."""
+    """Install Python OCR packages with user choice."""
     print("\n📦 Installing Python OCR packages...")
     
-    packages = [
-        "pytesseract>=0.3.10",
-        "pdf2image>=1.16.3", 
-        "Pillow>=10.0.0"
-    ]
+    print("\n🤔 Choose your OCR installation option:")
+    print("1. 🚀 Easy Setup (Pure Python - EasyOCR + TrOCR) - Recommended")
+    print("2. ⚡ Performance Setup (Tesseract + EasyOCR backup)")
+    print("3. 🎯 Complete Setup (All OCR backends)")
+    print("4. 📋 Basic Setup (Tesseract only - requires manual installation)")
+    
+    choice = input("\nEnter your choice (1-4) [1]: ").strip() or "1"
+    
+    if choice == "1":
+        # Pure Python setup - works without external dependencies
+        packages = [
+            "easyocr>=1.7.0",
+            "transformers>=4.25.0", 
+            "torch>=1.13.0",
+            "pdf2image>=1.16.3",
+            "Pillow>=10.0.0"
+        ]
+        print("\n✨ Installing Pure Python OCR (no external dependencies needed)...")
+        
+    elif choice == "2":
+        # Performance setup with backup
+        packages = [
+            "pytesseract>=0.3.10",
+            "easyocr>=1.7.0",
+            "pdf2image>=1.16.3",
+            "Pillow>=10.0.0"
+        ]
+        print("\n⚡ Installing Performance Setup (will need Tesseract, but has EasyOCR backup)...")
+        
+    elif choice == "3":
+        # Complete setup
+        packages = [
+            "pytesseract>=0.3.10",
+            "easyocr>=1.7.0", 
+            "transformers>=4.25.0",
+            "torch>=1.13.0",
+            "pdf2image>=1.16.3",
+            "Pillow>=10.0.0"
+        ]
+        print("\n🎯 Installing Complete OCR Setup (all backends)...")
+        
+    elif choice == "4":
+        # Basic Tesseract only
+        packages = [
+            "pytesseract>=0.3.10",
+            "pdf2image>=1.16.3", 
+            "Pillow>=10.0.0"
+        ]
+        print("\n📋 Installing Basic Setup (Tesseract only)...")
+        
+    else:
+        print("❌ Invalid choice, using Easy Setup...")
+        packages = [
+            "easyocr>=1.7.0",
+            "transformers>=4.25.0", 
+            "torch>=1.13.0",
+            "pdf2image>=1.16.3",
+            "Pillow>=10.0.0"
+        ]
     
     for package in packages:
         success = run_command(
@@ -65,21 +119,30 @@ def test_python_imports():
     print("\n🧪 Testing Python package imports...")
     
     packages_to_test = [
-        ("pytesseract", "import pytesseract"),
+        ("PIL", "from PIL import Image"),
         ("pdf2image", "from pdf2image import convert_from_path"),
-        ("PIL", "from PIL import Image")
+        ("pytesseract", "import pytesseract"),
+        ("easyocr", "import easyocr"),
+        ("transformers", "import transformers"),
+        ("torch", "import torch")
     ]
     
-    all_success = True
+    available_backends = []
     for name, import_cmd in packages_to_test:
         try:
             exec(import_cmd)
             print(f"✅ {name}: OK")
+            if name in ['pytesseract', 'easyocr', 'transformers']:
+                available_backends.append(name)
         except ImportError as e:
-            print(f"❌ {name}: Failed - {e}")
-            all_success = False
+            print(f"⚠️ {name}: Not available - {e}")
     
-    return all_success
+    if available_backends:
+        print(f"\n🎉 Available OCR backends: {', '.join(available_backends)}")
+        return True
+    else:
+        print("\n❌ No OCR backends available")
+        return False
 
 
 def detect_tesseract():
@@ -194,26 +257,43 @@ General instructions:
 
 
 def test_full_ocr_setup():
-    """Test the complete OCR setup."""
-    print("\n🚀 Testing Complete OCR Setup...")
+    """Test the complete OCR setup with enhanced processor."""
+    print("\n🚀 Testing Enhanced OCR Setup...")
     
     try:
-        # Test OCR processor
-        from ocr_processor import get_ocr_status
+        # Test enhanced OCR processor
+        try:
+            from enhanced_ocr_processor import get_ocr_status
+            status = get_ocr_status()
+        except ImportError:
+            # Fallback to original OCR processor
+            from ocr_processor import get_ocr_status
+            status = get_ocr_status()
         
-        status = get_ocr_status()
         print("📊 OCR Status:")
         print(f"  Available: {status['available']}")
         
         if status['available']:
-            print(f"  Supported formats: {status['supported_formats']}")
+            if 'available_backends' in status:
+                print(f"  Available backends: {status['available_backends']}")
+                if 'active_backend' in status:
+                    print(f"  Active backend: {status['active_backend']}")
+            
+            print(f"  Supported formats: {status.get('supported_formats', ['pdf'] + ['.png', '.jpg', '.jpeg'])}")
+            
             if 'tesseract_version' in status:
                 print(f"  Tesseract version: {status['tesseract_version']}")
+            
             print("✅ OCR setup is complete and working!")
             return True
         else:
             print(f"  Error: {status.get('error', 'Unknown error')}")
             print("❌ OCR setup incomplete")
+            
+            if 'installation_help' in status:
+                print("\n💡 Installation Help:")
+                print(status['installation_help'])
+            
             return False
             
     except Exception as e:

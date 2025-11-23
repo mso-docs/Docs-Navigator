@@ -17,17 +17,25 @@ except ImportError:
     PDF_SUPPORT = False
     print("Warning: PyPDF2 not installed. PDF support disabled.")
 
-# Import OCR processing capabilities
+# Import OCR processing capabilities - Try enhanced version first
 try:
-    from ocr_processor import extract_text_with_ocr, is_ocr_available, get_ocr_status
+    from enhanced_ocr_processor import extract_text_with_ocr, is_ocr_available, get_ocr_status
     OCR_SUPPORT = is_ocr_available()
     if OCR_SUPPORT:
-        print("OCR support enabled for image-based PDFs and images")
+        print("Enhanced OCR support enabled for image-based PDFs and images")
     else:
-        print("OCR libraries available but Tesseract not found")
+        print("Enhanced OCR libraries available but no backends found")
 except ImportError:
-    OCR_SUPPORT = False
-    print("Warning: OCR dependencies not installed. Image-based PDF processing disabled.")
+    try:
+        from ocr_processor import extract_text_with_ocr, is_ocr_available, get_ocr_status
+        OCR_SUPPORT = is_ocr_available()
+        if OCR_SUPPORT:
+            print("OCR support enabled for image-based PDFs and images")
+        else:
+            print("OCR libraries available but Tesseract not found")
+    except ImportError:
+        OCR_SUPPORT = False
+        print("Warning: OCR dependencies not installed. Image-based PDF processing disabled.")
 
 # Name your server – this is what clients see
 mcp = FastMCP("DocsNavigator")
@@ -476,7 +484,7 @@ def list_docs() -> List[str]:
     """
     List available documentation files relative to the docs/ folder.
     """
-    return [str(p.relative_to(DOCS_ROOT)) for p in _iter_docs()]
+    return [str(p.relative_to(DOCS_ROOT)).replace('\\', '/') for p in _iter_docs()]
 
 
 @mcp.tool()
@@ -537,7 +545,7 @@ def search_docs(query: str, max_results: int = 10) -> List[Dict[str, str]]:
             # Sort by score and take the best match
             best_match = max(matches, key=lambda x: x["score"])
             results.append({
-                "path": str(path.relative_to(DOCS_ROOT)),
+                "path": str(path.relative_to(DOCS_ROOT)).replace('\\', '/'),
                 "snippet": best_match["snippet"],
                 "score": str(best_match["score"]),
                 "match_type": best_match["match_type"]
@@ -827,14 +835,12 @@ def semantic_search(query: str, max_results: int = 5) -> List[Dict[str, Any]]:
             # Normalize score by document length
             normalized_score = score / len(content.split())
             
-            results.append({
-                'path': str(path.relative_to(DOCS_ROOT)),
-                'relevance_score': normalized_score,
-                'context_snippets': context_snippets[:3],  # Max 3 snippets
-                'word_count': len(content.split())
-            })
-    
-    # Sort by relevance score
+        results.append({
+            'path': str(path.relative_to(DOCS_ROOT)).replace('\\', '/'),
+            'relevance_score': normalized_score,
+            'context_snippets': context_snippets[:3],  # Max 3 snippets
+            'word_count': len(content.split())
+        })    # Sort by relevance score
     results.sort(key=lambda x: x['relevance_score'], reverse=True)
     return results[:max_results]
 
@@ -1254,7 +1260,7 @@ def generate_documentation_index() -> Dict[str, Any]:
     
     for path in all_docs:
         content = _read_file(path)
-        rel_path = str(path.relative_to(DOCS_ROOT))
+        rel_path = str(path.relative_to(DOCS_ROOT)).replace('\\', '/')
         
         # Extract concepts from this document
         concepts = doc_intel.extract_key_concepts(content, min_frequency=1)

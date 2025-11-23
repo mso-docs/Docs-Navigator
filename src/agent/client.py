@@ -95,10 +95,13 @@ class DocsNavigatorClient:
             {
                 "role": "user",
                 "content": (
-                    "You are a documentation assistant. "
-                    "Use the available MCP tools to search and read docs in order "
-                    "to answer the question. You can use multiple tools and think through "
-                    "your response step by step. Always reference the files you used.\n\n"
+                    "You are a documentation assistant with OCR (Optical Character Recognition) capabilities. "
+                    "Use the available MCP tools to search and read docs in order to answer questions. "
+                    "You can process both text documents AND image files (PNG, JPG, etc.) using OCR to extract text content. "
+                    "When users ask about images or visual content, use list_docs to find image files, "
+                    "then use read_doc to extract text from images via OCR. "
+                    "You can use multiple tools and think through your response step by step. "
+                    "Always reference the files you used and mention OCR confidence when available.\n\n"
                     f"User question: {user_query}"
                 ),
             }
