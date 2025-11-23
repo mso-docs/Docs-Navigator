@@ -1,5 +1,6 @@
 # AuroraAI Prompting Guidelines
 
+
 ## Best Practices
 - **Be explicit** about the output format (tables, JSON, Markdown, etc.).
 - **Provide context** such as code samples, user stories, or error logs.
