@@ -1,26 +1,26 @@
 [project]
 name = "docs-navigator-mcp"
-version = "0.1.0"
-description = "Docs Navigator MCP — FastMCP server + agent + Gradio UI"
+version = "2.0.0"
+description = "Search a folder of documentation and expose it to AI clients over MCP."
 readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.10"
-
 dependencies = [
-    "mcp[cli]>=0.1.0",
-    "anthropic>=0.36.0",
-    "python-dotenv>=1.0.1",
-    "gradio>=5.0.0",
-    "PyPDF2>=3.0.0",
-    # OCR Dependencies - Tesseract-based
-    "pytesseract>=0.3.13",
-    "pdf2image>=1.17.0",
-    "pillow>=11.3.0",
-    # Pure Python OCR alternatives (no external dependencies)
-    "easyocr>=1.7.0",
-    "transformers>=4.25.0",
-    "torch>=1.13.0",
+    "gradio[mcp,oauth]==6.32.0",
+    "mcp==1.30.0",
+    "huggingface_hub==2.4.0",
+    "pypdf==7.1.0",
+    "openpyxl==3.1.5",
+    "python-dotenv==1.2.4",
 ]
 
-[tool.uv]
-# optional, good defaults
-package = true
+[project.optional-dependencies]
+ocr = ["pytesseract==0.3.13", "pdf2image==1.17.0", "pillow==11.3.0"]
+dev = ["pytest==9.2.0"]
+
+[tool.setuptools]
+packages = ["docs_navigator"]
+py-modules = ["app", "mcp_server"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

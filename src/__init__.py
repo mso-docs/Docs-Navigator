@@ -1,1 +1,0 @@
-# Docs Navigator MCP package

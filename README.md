@@ -1,235 +1,127 @@
 # Docs Navigator MCP
 
-A powerful documentation assistant that combines **Model Context Protocol (MCP)** with **Claude AI** to provide intelligent Q&A over your documentation files. Built with FastMCP and Gradio for an easy-to-use web interface.
+Search a folder of documentation and hand it to your AI tools over the Model Context Protocol (MCP). It runs as a web app you can try in a browser, as a hosted MCP endpoint, or as a local server that reads your own files.
 
-## ✨ Features
+- **Try it:** [Hugging Face Space](https://huggingface.co/spaces/mackenzietechdocs/DocsNavigatorMCP) ([AI Lounge listing](https://ai.lounge.ai/@mackenzietechdocs/hf-docsnavigatormcp))
+- **Portfolio:** [mso-docs.github.io/mac-portfolio](https://mso-docs.github.io/mac-portfolio/)
+- **Original release:** the first version, from November and December 2025, is preserved on the [`original-release`](https://github.com/mso-docs/Docs-Navigator/tree/original-release) branch.
 
-- 🔍 **Smart Document Search**: Full-text search across your documentation files
-- 🤖 **AI-Powered Responses**: Uses Claude AI to provide intelligent answers based on your docs
-- 📁 **Multi-Format Support**: Works with `.md`, `.txt`, `.rst`, `.pdf`, and image files
-- 🔤 **OCR Capabilities**: Extract text from image-based PDFs and standalone images using Tesseract OCR
-- 📄 **Advanced PDF Support**: Hybrid PDF processing with automatic fallback to OCR for scanned documents
-- 🌐 **Web Interface**: Clean Gradio-based chat interface
-- ⚡ **MCP Integration**: Leverages Model Context Protocol for seamless tool integration
-- 🔧 **Easy Setup**: Simple configuration and deployment
+## What it does
 
-## 🏗️ Architecture
+| MCP tool | What it returns |
+| --- | --- |
+| `list_docs` | Every searchable file, with type, size, and passage count |
+| `search_docs` | The best matching passages, ranked, with file and section |
+| `read_doc` | The full text of one file |
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Gradio UI     │───▶│   Client Agent   │───▶│   Claude AI     │
-│  (Chat Interface)│    │  (MCP Client)    │    │   (Anthropic)   │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌──────────────────┐
-                       │   MCP Server     │
-                       │  (FastMCP)       │
-                       └──────────────────┘
-                                │
-                                ▼
-                       ┌──────────────────┐
-                       │   docs/ folder   │
-                       │  (.md, .txt,     │
-                       │   .rst files)    │
-                       └──────────────────┘
-```
+Search is BM25 over passages split at headings and paragraphs. It reads Markdown, text, reStructuredText, PDF, and Excel files. It needs no API key and makes no network calls.
 
-## 🚀 Quick Start
+The web app adds an **Ask with AI** button. It sends the top passages to an open model through [Hugging Face Inference Providers](https://huggingface.co/docs/inference-providers) and cites them as `[1]`, `[2]`. On the hosted Space, visitors sign in with Hugging Face, so calls use their own free monthly credits and nothing is billed to the author.
 
-### Prerequisites
+## Quickstart
 
-- Python 3.10 or higher
-- An Anthropic API key
-- UV package manager (recommended) or pip
-
-### 1. Clone and Setup
+Python 3.10 or newer.
 
 ```bash
-git clone <your-repo-url>
-cd docs-navigator
-```
-
-### 2. Install Dependencies
-
-Using UV (recommended):
-```bash
-uv sync
-```
-
-Or using pip:
-```bash
+git clone https://github.com/mso-docs/Docs-Navigator.git
+cd Docs-Navigator
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+python app.py
 ```
 
-### 3. Configure Environment
+Open http://127.0.0.1:7860. The MCP endpoint is http://127.0.0.1:7860/gradio_api/mcp/ and its tool schema is at `/gradio_api/mcp/schema`.
 
-Create a `.env` file:
-```bash
-echo "ANTHROPIC_API_KEY=your_api_key_here" > .env
-```
-
-### 4. Add Your Documentation
-
-Place your documentation files in the `docs/` directory:
-```
-docs/
-├── overview.md
-├── setup.md
-├── troubleshooting.md
-└── your-other-docs.txt
-```
-
-### 5. Launch the Application
+To search your own files, point `DOCS_DIR` at a folder:
 
 ```bash
-# Using UV
-uv run app_gradio.py
-
-# Or directly with Python
-python app_gradio.py
+DOCS_DIR=/path/to/your/docs python app.py
 ```
 
-The app will be available at `http://127.0.0.1:7860`
+To use Ask with AI when you run it yourself, put a Hugging Face token with the “Make calls to Inference Providers” permission in `DOCSNAV_SERVER_TOKEN` (see `.env.example`).
 
-## 📚 Usage Examples
+## Connect an MCP client
 
-Once the app is running, you can ask questions like:
+Hosted endpoint: `https://mackenzietechdocs-docsnavigatormcp.hf.space/gradio_api/mcp/` (searches the sample Aurora AI docs).
 
-- "How do I set up the authentication?"
-- "What are the troubleshooting steps for connection issues?"
-- "Where can I find information about API endpoints?"
-- "Summarize the main features mentioned in the docs"
+**Cursor**: add to `~/.cursor/mcp.json`:
 
-The AI will search through your documentation and provide contextual answers with references to the source files.
-
-## 🛠️ Development
-
-### Project Structure
-
-```
-docs-navigator/
-├── app_gradio.py          # Gradio web interface
-├── client_agent.py        # MCP client and Claude integration
-├── server_docs.py         # MCP server with doc tools
-├── docs/                  # Your documentation files
-├── tests/                 # Test scripts
-│   ├── test_mcp.py       # Test MCP server functionality
-│   ├── test_anthropic.py # Test Claude API connection
-│   └── test_complete.py  # End-to-end functionality test
-├── .env                   # Environment variables
-├── pyproject.toml         # Project configuration
-└── requirements.txt       # Python dependencies
+```json
+{
+  "mcpServers": {
+    "docs-navigator": { "url": "https://mackenzietechdocs-docsnavigatormcp.hf.space/gradio_api/mcp/" }
+  }
+}
 ```
 
-### Available MCP Tools
-
-The server exposes these tools to the AI:
-
-1. **`list_docs()`**: Get a list of all available documentation files
-2. **`search_docs(query, max_results)`**: Search for specific content across all docs
-
-### Testing
-
-Run the test suite:
+**Claude Code**:
 
 ```bash
-# Test MCP server functionality
-python test_mcp.py
-
-# Test Claude API connection
-python test_anthropic.py
-
-# Test complete end-to-end functionality
-python test_complete.py
+claude mcp add --transport http docs-navigator https://mackenzietechdocs-docsnavigatormcp.hf.space/gradio_api/mcp/
 ```
 
-## 🔧 Configuration
+**VS Code**: add to `.vscode/mcp.json`:
 
-### Environment Variables
+```json
+{
+  "servers": {
+    "docs-navigator": { "type": "http", "url": "https://mackenzietechdocs-docsnavigatormcp.hf.space/gradio_api/mcp/" }
+  }
+}
+```
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `ANTHROPIC_API_KEY` | Your Anthropic Claude API key | Yes |
+**Claude Desktop** (uses `mcp-remote`, which needs Node.js), in `claude_desktop_config.json`:
 
-### Supported File Formats
+```json
+{
+  "mcpServers": {
+    "docs-navigator": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mackenzietechdocs-docsnavigatormcp.hf.space/gradio_api/mcp/"]
+    }
+  }
+}
+```
 
-- **Markdown**: `.md`
-- **Text**: `.txt`
-- **reStructuredText**: `.rst`
-- **PDF Documents**: `.pdf` (text extraction + OCR for image-based content)
-- **Image Files**: `.png`, `.jpg`, `.jpeg`, `.tiff`, `.tif`, `.bmp`, `.gif` (OCR text extraction)
+**Your own docs, over stdio** (works in any client that launches a command):
 
-### OCR Requirements
+```json
+{
+  "mcpServers": {
+    "docs-navigator": {
+      "command": "python",
+      "args": ["/path/to/Docs-Navigator/mcp_server.py"],
+      "env": { "DOCS_DIR": "/path/to/your/docs" }
+    }
+  }
+}
+```
 
-For image-based PDF and image file processing, install Tesseract OCR:
+Use the Python from the virtual environment where you installed the requirements.
 
-**Windows:**
+## Project layout
+
+```
+app.py              Gradio web app; launches with mcp_server=True
+mcp_server.py       Local stdio MCP server
+docs_navigator/     corpus.py (index + search), llm.py (Ask), tools.py (MCP tools), connect.py (config snippets)
+docs/               Sample documentation (Aurora AI, a fictional product)
+tests/              Unit tests plus real MCP client round trips over HTTP and stdio
+```
+
+## Tests
+
 ```bash
-# Download and install from: https://github.com/UB-Mannheim/tesseract/wiki
-# Or install via chocolatey:
-choco install tesseract
+pip install -r requirements-dev.txt
+pytest
 ```
 
-**macOS:**
-```bash
-brew install tesseract
-```
+The tests start the app and call it as an MCP client over HTTP and over stdio.
 
-**Ubuntu/Debian:**
-```bash
-sudo apt-get install tesseract-ocr
-sudo apt-get install poppler-utils  # For PDF image conversion
-```
+## Optional OCR
 
-**Additional Language Packs (optional):**
-- Windows: Select during Tesseract installation
-- macOS: `brew install tesseract-lang`
-- Ubuntu: `sudo apt-get install tesseract-ocr-[language_code]`
+Scanned PDF pages are skipped unless OCR is available. Install the Tesseract and Poppler system packages, then `pip install -r requirements-ocr.txt`.
 
-### Model Configuration
+## License
 
-The app currently uses `claude-3-haiku-20240307`. To change the model, edit the model name in `client_agent.py`:
-
-```python
-model="claude-3-haiku-20240307"  # Change to your preferred model
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **"Model not found" error**: Your API key may not have access to the specified Claude model. The app will automatically test available models.
-
-2. **MCP connection issues**: Ensure the `server_docs.py` script is executable and in the correct location.
-
-3. **No documents found**: Make sure your documentation files are in the `docs/` folder with supported extensions.
-
-4. **Gradio interface not loading**: Check that port 7860 is available or modify the port in `app_gradio.py`.
-
-### Debug Mode
-
-Enable verbose logging by modifying the logging level in the respective files.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with [FastMCP](https://github.com/modelcontextprotocol/mcp) for Model Context Protocol integration
-- Powered by [Anthropic Claude](https://www.anthropic.com/) for AI responses
-- UI created with [Gradio](https://gradio.app/)
-- Package management with [UV](https://docs.astral.sh/uv/)
-
----
-
-For more detailed instructions, see the [Getting Started Guide](GETTING_STARTED.md).
+MIT. See [LICENSE](LICENSE).

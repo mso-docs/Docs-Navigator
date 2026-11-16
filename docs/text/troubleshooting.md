@@ -203,7 +203,7 @@ aurora --config=/tmp/test.yaml <command>
 **GitHub Connectivity:**
 ```bash
 # Test GitHub API access
-curl -H "Authorization: token YOUR_TOKEN" https://api.github.com/user
+curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user
 
 # Verify webhook endpoint
 curl -X POST https://api.aurora.ai/webhooks/github/test
@@ -215,7 +215,7 @@ ssh -T git@github.com
 **Jira Connectivity:**
 ```bash
 # Test Jira REST API
-curl -u user@domain.com:api_token https://your-domain.atlassian.net/rest/api/3/myself
+curl -u "$JIRA_EMAIL:$JIRA_API_TOKEN" https://your-domain.atlassian.net/rest/api/3/myself
 
 # Verify webhook delivery
 aurora integrate jira test-webhook --project KEY
