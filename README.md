@@ -2,9 +2,12 @@
 
 Search a folder of documentation and hand it to your AI tools over the Model Context Protocol (MCP). It runs as a web app you can try in a browser, as a hosted MCP endpoint, or as a local server that reads your own files.
 
-- **Try it:** [Hugging Face Space](https://huggingface.co/spaces/mackenzietechdocs/DocsNavigatorMCP) ([AI Lounge listing](https://ai.lounge.ai/@mackenzietechdocs/hf-docsnavigatormcp))
+- **Project page:** [mso-docs.github.io/Docs-Navigator](https://mso-docs.github.io/Docs-Navigator/)
+- **Try it (live Space):** [mackenzietechdocs/DocsNavigatorMCP](https://huggingface.co/spaces/mackenzietechdocs/DocsNavigatorMCP) ([AI Lounge listing](https://ai.lounge.ai/@mackenzietechdocs/hf-docsnavigatormcp))
+- **Original release (frozen Space):** [mackenzietechdocs/DocsNavigatorMCP-original](https://huggingface.co/spaces/mackenzietechdocs/DocsNavigatorMCP-original)
+- **Collection:** [Docs Navigator](https://huggingface.co/collections/mackenzietechdocs/docs-navigator)
 - **Portfolio:** [mso-docs.github.io/mac-portfolio](https://mso-docs.github.io/mac-portfolio/)
-- **Original release:** the first version, from November and December 2025, is preserved on the [`original-release`](https://github.com/mso-docs/Docs-Navigator/tree/original-release) branch.
+- **Original GitHub branch:** the first public tree, from December 2025, is on [`original-release`](https://github.com/mso-docs/Docs-Navigator/tree/original-release).
 
 ## What it does
 
