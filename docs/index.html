@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Docs Navigator MCP | Mackenzie O'Brien</title>
+  <meta name="description" content="Docs Navigator MCP searches a folder of documentation and hands it to your editor over the Model Context Protocol. Live Space, original release, collection, and source.">
+  <meta name="theme-color" content="#312e81">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #f5f4fb; --surface: #ffffff; --ink: #1e1b4b; --muted: #57538a;
+      --line: #ddd9f3; --indigo: #4338ca; --indigo-2: #3730a3; --wash: #eef2ff;
+      --serif: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; } html, body { margin: 0; }
+    body { font-family: var(--sans); color: var(--ink); background: var(--bg); line-height: 1.6; }
+    a { color: var(--indigo-2); } a:hover { color: var(--indigo); }
+    .wrap { width: min(920px, calc(100% - 40px)); margin-inline: auto; }
+    header { background: linear-gradient(160deg, #312e81 0%, #4338ca 55%, #6d28d9 100%); color: #eef2ff; padding: 2.6rem 0 3rem; }
+    header a { color: #eef2ff; }
+    .eyebrow { letter-spacing: .12em; text-transform: uppercase; font-size: .72rem; font-weight: 700; color: #c7d2fe; margin: 0 0 .8rem; }
+    h1 { font-family: var(--serif); font-weight: 600; font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -.02em; line-height: 1.12; margin: 0 0 .8rem; }
+    .lede { max-width: 40rem; color: #e0e7ff; font-size: 1.12rem; margin: 0 0 1rem; }
+    .byline { margin: 0 0 1.4rem; color: #c7d2fe; font-size: .95rem; }
+    .badges { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .badge { display: inline-flex; text-decoration: none; border-radius: 999px; padding: .45rem .9rem; font-weight: 650; font-size: .88rem; background: #eef2ff; color: var(--indigo-2); }
+    .badge:hover { background: #fff; color: var(--indigo); }
+    .badge.ghost { background: transparent; color: #eef2ff; border: 1px solid rgba(238,242,255,.4); }
+    .badge.ghost:hover { background: rgba(255,255,255,.1); color: #fff; }
+    main { padding: 2.4rem 0 3rem; }
+    h2 { font-family: var(--serif); font-size: 1.55rem; margin: 0 0 .4rem; letter-spacing: -.015em; }
+    .kick { font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--muted); margin: 0 0 .25rem; }
+    .intro { color: var(--muted); margin: 0 0 1.1rem; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem 1.2rem; }
+    .card h3 { margin: 0 0 .35rem; font-size: 1.02rem; }
+    .card p { margin: 0 0 .75rem; color: var(--muted); font-size: .95rem; }
+    .card .badge { background: var(--wash); }
+    footer { border-top: 1px solid var(--line); padding: 1.4rem 0 2.2rem; color: var(--muted); font-size: .88rem; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="eyebrow">Mackenzie O&rsquo;Brien &middot; Mac Labs AI &middot; Original project</p>
+      <h1>Docs Navigator MCP</h1>
+      <p class="lede">Search a folder of documentation and hand it to your editor over the Model Context Protocol. It began as a tool I needed for my own docs, and later became the basis for the SUSE Edition.</p>
+      <p class="byline">Not a hackathon entry. First published in December 2025; the live Space now runs version 2.</p>
+      <div class="badges">
+        <a class="badge" href="https://huggingface.co/spaces/mackenzietechdocs/DocsNavigatorMCP">Live Space</a>
+        <a class="badge" href="https://huggingface.co/spaces/mackenzietechdocs/DocsNavigatorMCP-original">Original Space</a>
+        <a class="badge ghost" href="https://huggingface.co/collections/mackenzietechdocs/docs-navigator">Collection</a>
+        <a class="badge ghost" href="https://github.com/mso-docs/Docs-Navigator">GitHub</a>
+        <a class="badge ghost" href="https://ai.lounge.ai/@mackenzietechdocs/hf-docsnavigatormcp">AI Lounge</a>
+      </div>
+    </div>
+  </header>
+  <main class="wrap">
+    <p class="kick">Every artifact</p>
+    <h2>The original release is frozen. The current URL stays on the updated app.</h2>
+    <p class="intro">This page is the entry point for the project. External listings already point at the live Space, so version 2 stays at that address. A separate Space holds the pre-v2 snapshot.</p>
+    <div class="grid">
+      <article class="card">
+        <h3>Updated version &mdash; keep this URL</h3>
+        <p>Search-first UI, a working MCP server, and Sign in with Hugging Face for optional AI answers. This is the address listed on AI Lounge.</p>
+        <a class="badge" href="https://huggingface.co/spaces/mackenzietechdocs/DocsNavigatorMCP">mackenzietechdocs/DocsNavigatorMCP</a>
+      </article>
+      <article class="card">
+        <h3>Original release, frozen</h3>
+        <p>A snapshot of the Space at commit 51d28d4 (November 14, 2026), the pre-v2 app. It is kept as originally released and is not updated. The GitHub branch original-release is the first public tree, from December 2, 2025.</p>
+        <a class="badge" href="https://huggingface.co/spaces/mackenzietechdocs/DocsNavigatorMCP-original">DocsNavigatorMCP-original</a>
+        <a class="badge" href="https://github.com/mso-docs/Docs-Navigator/tree/original-release">GitHub original-release</a>
+      </article>
+      <article class="card">
+        <h3>Collection and source</h3>
+        <p>Both Spaces, grouped together, and the GitHub repository.</p>
+        <a class="badge" href="https://huggingface.co/collections/mackenzietechdocs/docs-navigator">Collection</a>
+        <a class="badge" href="https://github.com/mso-docs/Docs-Navigator">GitHub</a>
+      </article>
+      <article class="card">
+        <h3>SUSE Edition</h3>
+        <p>A later, independent edition built for SUSE Hack Week 25. It has its own project page, Spaces, and collection.</p>
+        <a class="badge" href="https://mso-docs.github.io/Docs-Navigator-MCP-SUSE-Edition/">SUSE project page</a>
+      </article>
+    </div>
+  </main>
+  <footer>
+    <div class="wrap">
+      <p>Mackenzie O&rsquo;Brien, Mac Labs AI. Docs Navigator is my own project, not a hackathon submission.</p>
+      <p>No analytics, cookies, or third-party requests except the links you click.</p>
+    </div>
+  </footer>
+</body>
+</html>
